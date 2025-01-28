@@ -173,7 +173,7 @@ const HMRClient: HMRClientNativeInterface = {
     host: string,
     port: number | string,
     isEnabled: boolean,
-    scheme?: string = 'http',
+    scheme?: string,
   ) {
     invariant(platform, 'Missing required parameter `platform`');
     invariant(bundleEntry, 'Missing required parameter `bundleEntry`');
@@ -182,6 +182,12 @@ const HMRClient: HMRClientNativeInterface = {
 
     // Moving to top gives errors due to NativeModules not being initialized
     const DevLoadingView = require('./DevLoadingView');
+
+    // If scheme was not provided, infer the scheme based on the port
+    // This resolves Android HMR where the scheme isn't passed down,
+    // when using Metro behind a HTTPS proxy - resulting in an incorrect
+    // websocket connection `http://<server>:443`.
+    scheme = scheme || (String(port) === '443' ? 'https' : 'http');
 
     const serverHost = port !== null && port !== '' ? `${host}:${port}` : host;
 
